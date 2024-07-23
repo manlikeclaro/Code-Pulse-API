@@ -3,63 +3,87 @@ using AutoMapper;
 using CodePulse.API.Data;
 using CodePulse.API.Models;
 using CodePulse.API.Models.Dto.Category;
+using CodePulse.API.Repository.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace CodePulse.API.Controllers;
-
-[ApiController]
-[Route("api/categories")]
-public class CategoriesController : ControllerBase
+namespace CodePulse.API.Controllers
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IMapper _mapper;
-    private APIResponse _apiResponse;
-
-    public CategoriesController(ApplicationDbContext dbContext, IMapper mapper)
+    [ApiController]
+    [Route("api/categories")]
+    public class CategoriesController : ControllerBase
     {
-        _dbContext = dbContext;
-        _mapper = mapper;
-    }
+        // Private readonly fields to hold dependencies
+        private readonly IRepository<Category> _dbContext;
+        private readonly IMapper _mapper;
+        private APIResponse _apiResponse;
 
-    // GET: api/categories
-    [HttpGet]
-    [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCategories()
-    {
-        try
+        // Constructor to inject the dependencies
+        public CategoriesController(IRepository<Category> dbContext, IMapper mapper)
         {
-            var categories = await _dbContext.Categories.ToListAsync();
-            _apiResponse = new APIResponse(
-                data: categories
-            );
-            return Ok(_apiResponse);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve Categories");
-        }
-    }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateCategory([FromBody] CategoryDto categoryDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
+            _dbContext = dbContext;
+            _mapper = mapper;
         }
 
-        var newCategory = _mapper.Map<Category>(categoryDto);
-        // newCategory.Id = Guid.NewGuid();
-        await _dbContext.Categories.AddAsync(newCategory);
-        await _dbContext.SaveChangesAsync();
+        // GET: api/categories - retrieve all categories
+        [HttpGet]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCategories()
+        {
+            try
+            {
+                // Fetch all categories from the database
+                var categories = await _dbContext.GetAllAsync();
 
-        _apiResponse = new APIResponse(
-            statusCode: HttpStatusCode.Created,
-            data: newCategory
-        );
-        return Ok(_apiResponse);
+                // Prepare API response with the fetched categories
+                _apiResponse = new APIResponse(
+                    data: categories
+                );
+
+                // Return OK status with the API response
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (not implemented here) and return a 500 error response
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve categories");
+            }
+        }
+
+        // POST: api/categories - create a new category
+        [HttpPost]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto categoryDto)
+        {
+            try
+            {
+                // Validate the incoming model
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Map the DTO to a Category entity
+                var newCategory = _mapper.Map<Category>(categoryDto);
+
+                // Create the new category in the database
+                await _dbContext.CreateAsync(newCategory);
+
+                // Prepare API response with the created category
+                _apiResponse = new APIResponse(
+                    statusCode: HttpStatusCode.Created,
+                    data: newCategory
+                );
+
+                // Return OK status with the API response
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (not implemented here) and return a 500 error response
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to create category");
+            }
+        }
     }
 }
