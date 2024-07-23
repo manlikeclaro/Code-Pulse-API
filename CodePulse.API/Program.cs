@@ -15,8 +15,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// // Add AutoMapper with MappingConfig
-// builder.Services.AddAutoMapper(typeof(MappingConfig));
+// Add AutoMapper with MappingConfig
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 var app = builder.Build();
 
