@@ -35,9 +35,12 @@ namespace CodePulse.API.Controllers
                 // Fetch all categories from the database
                 var categories = await _dbContext.GetAllAsync();
 
+                // Map the Category entity list to a Dto enumerable
+                var mappedCategories = _mapper.Map<List<CategoryDto>>(categories);
+
                 // Prepare API response with the fetched categories
                 _apiResponse = new APIResponse(
-                    data: categories
+                    data: mappedCategories
                 );
 
                 // Return OK status with the API response
