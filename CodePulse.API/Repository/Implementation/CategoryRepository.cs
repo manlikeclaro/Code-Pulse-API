@@ -1,4 +1,5 @@
-﻿using CodePulse.API.Data;
+﻿using System.Linq.Expressions;
+using CodePulse.API.Data;
 using CodePulse.API.Models;
 using CodePulse.API.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -27,10 +28,11 @@ namespace CodePulse.API.Repository.Implementation
             return categories;
         }
 
-        // Method to retrieve a single category asynchronously (not implemented)
-        public Task<Category> GetAsync()
+        // Method to retrieve a single category asynchronously
+        public async Task<Category> GetAsync(Expression<Func<Category, bool>> filter)
         {
-            throw new NotImplementedException();
+            var category = await _dbSet.FirstOrDefaultAsync(filter);
+            return category;
         }
 
         // Method to create a new category asynchronously
