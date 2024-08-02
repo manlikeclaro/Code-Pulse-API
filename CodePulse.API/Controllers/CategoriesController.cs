@@ -92,6 +92,56 @@ namespace CodePulse.API.Controllers
             }
         }
 
+        // GET: api/categories/{id} - update single category
+        [HttpPut("{id:guid}", Name = "UpdateCategory")]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryUpdateDto categoryUpdateDto)
+        {
+            try
+            {
+                // Validate the incoming model
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Fetch single category from the database
+                var category = await _dbContext.GetAsync(obj => obj.Id == id);
+
+                if (category == null)
+                {
+                    _apiResponse = new APIResponse(
+                        statusCode: HttpStatusCode.NotFound,
+                        isSuccess: false,
+                        errorMessages: [$"Category with id '{id}' does not exist!"]
+                    );
+                    return NotFound(_apiResponse);
+                }
+
+                // Update the Category entity
+                var updatedCategory = _mapper.Map(categoryUpdateDto, category);
+                await _dbContext.UpdateAsync(updatedCategory);
+
+                // Map the Category entity to a Dto
+                var mappedCategory = _mapper.Map<CategoryDto>(updatedCategory);
+
+                // Prepare API response with the fetched categories
+                _apiResponse = new APIResponse(
+                    data: mappedCategory
+                );
+
+                // Return OK status with the API response
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (not implemented here) and return a 500 error response
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve categories");
+            }
+        }
+
         // POST: api/categories - create a new category
         [HttpPost]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]

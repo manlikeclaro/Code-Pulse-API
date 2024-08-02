@@ -10,6 +10,7 @@ public class MappingConfig : Profile
     public MappingConfig()
     {
         CreateMap<Category, CategoryDto>().ReverseMap();
+        CreateMap<Category, CategoryUpdateDto>().ReverseMap();
         CreateMap<BlogPost, BlogPostDto>().ReverseMap();
     }
 }
