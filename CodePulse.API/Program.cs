@@ -40,11 +40,12 @@ if (app.Environment.IsDevelopment())
 // Enable HTTPS redirection
 app.UseHttpsRedirection();
 
+// Enable CORS with specific options
 app.UseCors(options =>
 {
-    options.AllowAnyHeader();
-    options.AllowAnyOrigin();
-    options.AllowAnyMethod();
+    options.AllowAnyHeader(); // Allow all headers
+    options.AllowAnyOrigin(); // Allow requests from any origin
+    options.AllowAnyMethod(); // Allow all HTTP methods (GET, POST, etc.)
 });
 
 // Enable authorization middleware
